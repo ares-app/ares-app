@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+        http://www.springframework.org/schema/aop   http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	<context:property-placeholder location="classpath:ares-app.properties"/>
+		
+	<bean id="tbClient" class="com.taobao.api.DefaultTaobaoClient" c:appKey="23379846" c:appSecret="ef352cbd0656709147deaeeb4a977f23" c:serverUrl="http://gw.api.taobao.com/router/rest"/>
+	<bean id="aliyuNSR" class="com.taobao.api.request.AlibabaAliqinFcSmsNumSendRequest">
+		<property name="smsType" value="${aliyu.sms.type}" />
+		<property name="smsFreeSignName" value="${aliyu.sms.free.signName}"/>
+		<property name="smsTemplateCode" value="${aliyu.sms.template.code}" />
+	</bean>
+	<bean id="aliyuSM" class="org.ares.app.common.sms.aliyu.AliyuShortMessage">
+		<property name="client" ref="tbClient"/>
+		<property name="snsr" ref="aliyuNSR"/>
+	</bean>
+		
+</beans>

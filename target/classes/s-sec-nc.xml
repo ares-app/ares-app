@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd 
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+  
+  	<sec:http security="none" pattern="/sys/*" />
+  	<sec:http security="none" pattern="/prop/*" />
+  	<sec:http security="none" pattern="/page/common/login.jsp*" />
+	<sec:http security="none" pattern="/js/**" />
+	<sec:http security="none" pattern="/css/**" />
+	<sec:http security="none" pattern="/image*/**" />
+	<sec:http security="none" pattern="/**/*.js" />
+	
+  	<sec:http auto-config="true"  access-denied-page="/page/common/deny.jsp">
+  		<sec:form-login login-page="/page/common/login.jsp" default-target-url="/" authentication-failure-url="/page/common/login.jsp?error=true"/>
+        <sec:custom-filter ref="filterSecurityInterceptor" before="FILTER_SECURITY_INTERCEPTOR" />
+    </sec:http>
+
+    <sec:authentication-manager>
+        <sec:authentication-provider>
+            <sec:jdbc-user-service data-source-ref="dataSource"
+                users-by-username-query="select u.userid username,u.password,'1' enabled from s_user u where userid=?"
+                authorities-by-username-query="select u.userid username,r.rolename as authority from s_user u join s_user_role ur 
+                	on u.userid=ur.userid join s_role r on r.roleid=ur.roleid where u.userid=?"/>
+        </sec:authentication-provider>
+    </sec:authentication-manager>
+	
+	<bean id="filterSecurityInterceptor" class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor" autowire="byType">
+        <property name="securityMetadataSource" ref="filterInvocationSecurityMetadataSource" />
+        <property name="authenticationManager" ref="org.springframework.security.authenticationManager"/>
+    </bean>
+
+    <bean id="filterInvocationSecurityMetadataSource" class="org.ares.app.common.security.spring.dynamic.fism.SqlInvocationSecurityMetadataSourceImp">
+        <property name="jt" ref="jt"/>
+        <property name="resourceQuery" value="select res.res restr,r.rolename from s_role r join s_role_res rr 
+        	on r.roleid=rr.roleid join s_res res on res.resid=rr.resid order by res.res"/>
+    </bean>
+    
+</beans>  

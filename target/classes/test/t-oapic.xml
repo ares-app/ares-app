@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+        http://www.springframework.org/schema/aop   http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	<import resource="../s-fsc.xml"/>
+	
+	<bean id="signComponent" class="org.ares.app.common.encr.datakey.OApiSign" p:timeService-ref="unixTimeService"/>
+	<bean id="unixTimeService" class="org.ares.app.common.oapi.time.DefaultTimeServiceImp"/>
+	<bean id="localipService" class="org.ares.app.common.oapi.client.ip.LocalIPServiceImp"/>
+	
+	<bean id="oapiMapQuery" class="org.ares.app.common.oapi.client.mapsrv.JdbcOApiMapQueryImp">
+		<property name="sql_client" value="select * from b_outersrv"/>
+		<property name="sql_server" value="select * from b_innersrv"/>
+		<property name="sql_cmaps" value="select * from b_srv_inout"/>
+		<property name="sql_cmapsinfo" value="select  o.name oname,o.addr oaddr,i.addr iaddr,seckey,i.name iname,consid from B_INNERSRV i,
+			B_OUTERSRV o,b_srv_inout io where i.id=io.inid and o.id=io.outid and o.enable='1' order by o.addr"/>
+		<property name="sql_mapbycid" value="select  o.name oname,o.addr oaddr,i.addr iaddr,seckey,i.name iname,consid from B_INNERSRV i,
+			B_OUTERSRV o,b_srv_inout io where i.id=io.inid and o.id=io.outid and o.enable='1' and o.addr=:oaddr"/>
+		<property name="npjt" ref="npjt"/>
+	</bean>
+	
+	<bean id="oapiMapService" class="org.ares.app.common.oapi.client.mapsrv.OApiMapServiceImp" init-method="init">
+		<property name="ipService" ref="localipService"/>
+		<property name="omapQuery" ref="oapiMapQuery"/>
+		<property name="timeService" ref="unixTimeService"/>
+		<property name="signGenerator" ref="signComponent"/>
+	</bean>
+	
+</beans>

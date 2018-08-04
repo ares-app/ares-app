@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+	<!-- no cas use cache -->
+	<import resource="s-ds.xml"/>
+	
+	<security:http security="none" pattern="/css/**" />
+	<security:http security="none" pattern="/image*/**" />
+	<security:http security="none" pattern="/**/*.js" />
+	
+	<security:http security="none" pattern="/sys/*" />
+	<security:http security="none" pattern="/log*"/>
+	<security:http security="none" pattern="/page/common/login.jsp"/>
+	<security:http security="none" pattern="/malogin.json*"/>
+	
+	<security:http security="none" pattern="/user/**" />
+	<security:http security="none" pattern="/app*/**" />
+	<security:http security="none" pattern="/demo/getdemo.json*"/>
+	
+	<!-- login,logout url -->
+	<security:http auto-config="true" access-decision-manager-ref="accessDecisionManager"  access-denied-page="/deny.json" entry-point-ref="loginUrlAuthenticationEntryPoint">
+		<security:form-login login-page="/login.json" authentication-success-handler-ref="uash" authentication-failure-url="/login.json"/>  
+        <security:logout logout-url="/logout.json"   invalidate-session="true" success-handler-ref="ulsh" />
+		<security:intercept-url pattern="/**" access="HODLE"/>
+	</security:http>
+
+	<bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />  
+  	<bean name="ulsh" class="org.ares.app.common.security.spring.listener.UserLogoutSuccessHandler">
+  		<property name="defaultTargetUrl" value="/login.json"/> <!-- https://ca.neusoft.edu.cn:8443/cas/logout -->
+  		<property name="uf" ref="userFactory"/>
+  	</bean>
+  	
+  	<bean id="authenticationUserDetailsService" class="org.springframework.security.cas.userdetails.GrantedAuthorityFromAssertionAttributesUserDetailsService">
+		<constructor-arg><array><value>authorities</value></array></constructor-arg>
+	</bean>
+	
+    <security:authentication-manager alias="authenticationManager">  
+        <security:authentication-provider user-service-ref="userDetails"/>  
+    </security:authentication-manager>  
+	
+	<!-- login user -->
+	<bean id="userDetails" class="org.ares.app.common.security.spring.UserDetailsServiceImp">
+    	<property name="uf" ref="userFactory"/>
+    </bean>
+    
+    <bean id="uash" class="org.ares.app.common.security.spring.loginjump.UserAuthenticationSuccessHandler">
+    	<property name="loginsuccessjump" value="/"/>
+    </bean> 
+    <bean id="loginUrlAuthenticationEntryPoint" class="org.ares.app.common.security.spring.loginjump.UserLoginUrlAuthenticationEntryPoint">
+		<property name="useForward" value="true" />
+		<property name="loginFormUrl" value="/login.json" />
+	</bean>
+	
+    <bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">  
+        <property name="decisionVoters">  
+            <list>  
+                <bean class="org.springframework.security.access.vote.RoleVoter" />  
+                <bean class="org.springframework.security.access.vote.AuthenticatedVoter" />  
+                <bean class="org.ares.app.common.security.spring.vote.AccessDecisionVoterImpl">
+                	<property name="uf" ref="userFactory"/>
+                </bean>  
+            </list>
+        </property>
+    </bean>
+    
+    <bean id="userFactory" class="org.ares.app.common.security.rbac.custom.LazyUserFuncFactoryImp">
+    	<property name="t_role" value="select roleid,rolename from s_role"/>
+    	<property name="t_user" value="select userid,password userpwd,username,status from s_user"/>
+    	<property name="t_res" value="select resid,resname,res from s_res order by resid"/>
+    	<property name="r_user_role" value="s_user_role,userid,roleid"/>
+    	<property name="r_role_res" value="s_role_res,roleid,resid"/>
+    	<property name="jt" ref="jt"/>
+    </bean>
+    
+</beans>
+

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+        http://www.springframework.org/schema/aop   http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	<context:property-placeholder location="classpath:ares-app.properties"/>
+	<import resource="../s-fsc.xml" />
+	<import resource="../s-jpa.xml"/>
+	<import resource="../s-oapis.xml"/>
+
+	<context:component-scan base-package="org.ares.app.demo" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+    </context:component-scan>
+	
+	<bean id="loginUser" class="org.ares.app.common.security.servlet.user.UserModel" scope="session">
+		<aop:scoped-proxy/>
+	</bean>
+	
+	<bean id="dataStore" class="org.ares.app.common.advice.datastore.WebDataStore"/>
+
+	<bean id="loginUserService" class="org.ares.app.common.security.servlet.user.JdbcUserLoginImp">
+		<property name="jt" ref="jt"/>
+		<property name="t_user" value="select userid,userpwd,username,status from user where userid=?"/>
+	</bean>
+	<mvc:interceptors>
+    	<bean class="org.ares.app.common.mvc.intercept.CommonRequestIntercept">
+    		<property name="loginUserService" ref="loginUserService"/>
+    		<property name="dataStore" ref="dataStore"/>
+    		<property name="loginUser" ref="loginUser"/>
+    	</bean>
+    </mvc:interceptors>
+    
+    <bean id="action_advice" class="org.ares.app.common.advice.WebCtrlMethodAdvice"><!-- maybe put this config to s-mvc.xml -->
+		<property name="dataStore" ref="dataStore"/>
+	</bean>
+	<aop:config>
+		<aop:pointcut expression="execution(* ${pointcut.action}.*(..))" id="action_cut"/>
+		<aop:aspect id="action_aspect" ref="action_advice">
+			<aop:after-returning method="actionAfterHandle" pointcut-ref="action_cut" returning="r" />
+			<aop:around method="actionAroundHandle" pointcut-ref="action_cut" arg-names="pjp"/>
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- enable Springmvc driver -->
+	<mvc:annotation-driven />
+
+	<bean id="handlerMapping" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
+	<bean id="handlerAdapter" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+				<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+					<property name="supportedMediaTypes">
+						<list>
+							<value>text/html;charset=UTF-8</value>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.springframework.http.converter.ResourceHttpMessageConverter" />
+				<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+					<property name="supportedMediaTypes">
+						<list>
+							<value>text/html;charset=UTF-8</value>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+		<property name="maxUploadSize" value="10485760"/>  
+    </bean> 
+    
+	<mvc:resources mapping="/image/**" location="/image/" cache-period="31556926"/>  
+	<mvc:resources mapping="/js/**" location="/js/" cache-period="31556926"/>  
+	<mvc:resources mapping="/css/**" location="/css/" cache-period="31556926"/>
+	
+</beans>

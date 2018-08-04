@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+        http://www.springframework.org/schema/aop   http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	
+	<bean id="wxsign" class="org.ares.app.common.encr.data.WxchatDictSign" />
+	
+	<bean id="wxconsumer" class="org.ares.app.common.repository.jt.simple.JdbcSimpleQuery">
+		<property name="sql" value="select acctoken from s_wxaccount where accid=?"/>
+		<property name="jt" ref="jt"/>
+	</bean>
+	
+	<bean id="wxsignVerify" class="org.ares.app.sys.wx.join.handle.WxDefaultVeriryHandle" p:offaccid="ares" p:sign-ref="wxsign" p:consumer-ref="wxconsumer"/>
+	
+	<bean id="wxcomponent" class="org.ares.app.sys.wx.component.WxComponent">
+		<property name="messageHandles">
+			<map>
+				<entry key="text" value-ref="textMsgHandle"/>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="textMsgHandle" class="org.ares.app.sys.wx.join.handle.WxTextMessageHandle"/>
+
+	<!-- <bean id="raudit" class="org.ares.app.common.oapi.server.audit.JdbcRequestAuditImp">
+		<property name="npjt" ref="npjt"/>
+		<property name="sql" value="insert into s_requestlog(rid,raddr,rtime,rip,rclientid,descr,logtime) values(:rid,:raddr,:rtime,:rip,:rcid,:descr,systimestamp)"/>
+	</bean> -->
+	
+</beans>

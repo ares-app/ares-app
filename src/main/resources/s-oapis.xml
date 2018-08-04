@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+        http://www.springframework.org/schema/aop   http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	<!-- <import resource="s-ds.xml"/>
+	<bean id="dataStore" class="org.ares.app.common.advice.datastore.WebDataStore"/> -->
+	
+	<bean id="signComponent" class="org.ares.app.common.encr.datakey.OApiSign" p:timeService-ref="unixTimeService"/>
+	<bean id="unixTimeService" class="org.ares.app.common.oapi.time.DefaultTimeServiceImp"/>
+	
+	<bean id="comsumer" class="org.ares.app.common.repository.jt.simple.JdbcSimpleQuery">
+		<property name="sql" value="select secretkey from s_secretkey where accesskey=?"/>
+		<property name="jt" ref="jt"/>
+	</bean>
+	
+	<bean id="signVerify" class="org.ares.app.common.oapi.server.verify.OApiSignVerify" p:signComponent-ref="signComponent" p:consumer-ref="comsumer"/>
+		
+    <bean id="timeVeriry" class="org.ares.app.common.oapi.server.verify.OApiTimeoutVerify" p:maxsecond="600" p:timeService-ref="unixTimeService"/>
+    
+	<bean id="requestVerify" class="org.ares.app.common.oapi.server.check.RequestVerifyServiceImp" >
+		<property name="verifys">
+    		<list>
+    			<ref bean="timeVeriry"/>
+    			<ref bean="signVerify"/>
+    		</list>
+    	</property>
+	</bean>
+	
+	<bean id="raudit" class="org.ares.app.common.oapi.server.audit.JdbcRequestAuditImp">
+		<property name="npjt" ref="npjt"/>
+		<property name="sql" value="insert into s_requestlog(rid,raddr,rtime,rip,rclientid,descr,logtime) values(:rid,:raddr,:rtime,:rip,:rcid,:descr,systimestamp)"/>
+	</bean>
+	
+	<bean id="oapiIntercept" class="org.ares.app.common.mvc.intercept.OApiIntercept">
+   		<property name="dataStore" ref="dataStore"/>
+   		<property name="raudit" ref="raudit"/>
+   		<property name="verify" ref="requestVerify"/>
+   	</bean>	
+			   	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/oapi/**"/>
+			<ref bean="oapiIntercept"/>
+		</mvc:interceptor>
+    </mvc:interceptors>
+	
+	<mvc:annotation-driven />
+	
+</beans>

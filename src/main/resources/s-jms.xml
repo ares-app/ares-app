@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:cache="http://www.springframework.org/schema/cache" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:amq="http://activemq.apache.org/schema/core"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:jms="http://www.springframework.org/schema/jms" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p"  xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:sec="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd   
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+        http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.3.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd  
+        http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd  
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.3.xsd
+        http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core-5.13.0.xsd
+        http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-4.3.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+	
+	<context:property-placeholder location="classpath:ares-app.properties"/>
+	
+	<amq:connectionFactory id="conFactory"  brokerURL="${activemq.brokerURL}" password="system" userName="system" />
+	<bean id="cacheConFactory" class="org.springframework.jms.connection.CachingConnectionFactory" c:targetConnectionFactory-ref="conFactory" p:sessionCacheSize="100" />
+    <bean id="jtq" class="org.springframework.jms.core.JmsTemplate" c:connectionFactory-ref="cacheConFactory" p:defaultDestinationName="queue.demo" p:pubSubDomain="false" />
+    <bean id="jtt" class="org.springframework.jms.core.JmsTemplate" c:connectionFactory-ref="cacheConFactory" p:defaultDestinationName="topic.str" p:pubSubDomain="true" />
+    
+    <jms:listener-container destination-type="queue" container-type="default" connection-factory="cacheConFactory" acknowledge="auto">
+        <jms:listener destination="queue.demo.str" ref="queueReceiver"/>
+        <jms:listener destination="queue.demo.str" ref="rec-pojo" method="receive"/>
+    </jms:listener-container>
+     
+    <jms:listener-container destination-type="topic" container-type="default" connection-factory="cacheConFactory" acknowledge="auto">
+        <jms:listener destination="topic.demo.str" ref="topicReceiver"/>
+        <jms:listener destination="topic.demo.map" ref="topicReceiver"/>
+        <jms:listener destination="topic.demo.str" ref="rec-pojo" method="receive"/>
+        <jms:listener destination="topic.demo.map" ref="rec-pojo" method="receive"/>
+    </jms:listener-container>
+    
+    <bean id="queueSender" class="org.ares.app.demo.jms.queue.QueueSender"/>
+    <bean id="topicSender" class="org.ares.app.demo.jms.topic.TopicSender"/>
+    <bean id="queueReceiver" class="org.ares.app.demo.jms.queue.QueueReceiver"/>
+    <bean id="topicReceiver" class="org.ares.app.demo.jms.topic.TopicReceiver"/>
+    
+    <bean id="rec-pojo" class="org.ares.app.demo.jms.pojo.ReceivePojo"/>
+    
+</beans>

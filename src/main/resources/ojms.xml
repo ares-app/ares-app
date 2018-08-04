@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation=
+              "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+               http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd 
+               http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd 
+               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="${activemq.brokerURL}"/>
+        <property name="useAsyncSend" value="true"/>
+    </bean>
+
+    <bean id="cachingConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+        <property name="targetConnectionFactory" ref="connectionFactory"/>
+        <property name="sessionCacheSize" value="100"/>
+        <property name="clientId" value="jack"/>
+    </bean>
+
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="cachingConnectionFactory"/>
+        <property name="deliveryMode" value="2" />
+        <property name="priority" value="9"/>
+        <property name="pubSubDomain" value="true" />
+        <property name="receiveTimeout" value="5000" />
+    </bean>
+
+    <bean id="q_demo" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="queue.demo.str"/>
+    </bean>
+    <bean id="qdemo_listener" class="org.ares.app.demo.jms.queue.QueueReceiver"/>
+    <bean id="demoQueueContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="cachingConnectionFactory" />
+        <property name="destination" ref="q_demo" />
+        <property name="messageListener" ref="qdemo_listener" />
+        <property name="concurrentConsumers" value="5" />
+        <property name="maxConcurrentConsumers" value="30" />
+    </bean>
+
+    <bean id="t_demo" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg value="topic.demo.str"/>
+    </bean>
+    <bean id="tdemo_listener" class="org.ares.app.demo.jms.topic.TopicReceiver" scope="prototype"/>
+
+    <!--<bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager"/>-->
+
+    <bean id="demoTopicContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="cachingConnectionFactory"/>
+        <property name="pubSubDomain" value="true"/>
+        <property name="receiveTimeout" value="5000"/>
+         <property name="subscriptionDurable" value="true"/>
+        <property name="clientId" value="jack"/>
+        <property name="durableSubscriptionName" value="jack_001"/>
+        <property name="sessionTransacted" value="false"/>
+        <property name="destination" ref="t_demo"/>
+        <property name="messageListener" ref="tdemo_listener"/>
+        <!--<property name="transactionManager" ref="transactionManager"/>-->
+    </bean>
+    
+    <bean id="tm_demo" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg value="topic.demo.map"/>
+    </bean>
+
+    <bean id="demoTopicMapContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="cachingConnectionFactory"/>
+        <property name="pubSubDomain" value="true"/>
+        <property name="receiveTimeout" value="5000"/>
+        <property name="subscriptionDurable" value="true"/>
+        <property name="clientId" value="jack"/>
+        <property name="durableSubscriptionName" value="jack_002"/>
+        <property name="sessionTransacted" value="false"/>
+        <property name="destination" ref="tm_demo"/>
+        <property name="messageListener" ref="tdemo_listener"/>
+        <!--<property name="transactionManager" ref="transactionManager"/>-->
+    </bean>
+
+</beans>

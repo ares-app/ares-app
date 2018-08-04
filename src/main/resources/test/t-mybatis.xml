@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+ 	
+	<import resource="../s-fsc.xml"/>
+
+	<context:component-scan base-package="org.ares.app.demo.mbts"/><!-- product mode take away -->
+	
+	<bean id="mybatisus" class="org.ares.app.demo.mbts.service.MybatisUserServiceImp" />
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	    <property name="dataSource" ref="dataSource" />
+	    <property name="configLocation" value="classpath:mybatis-config.xml"/>
+	    <property name="mapperLocations" value="classpath:org/ares/app/demo/mbts/xml/*Mapper.xml"/>
+	    <property name="plugins">
+	    	<list>
+	    		<bean id="oraclePage" class="org.ares.app.common.repository.mybatis.interceptor.page.PageStatementHandlerInterceptor">
+	    			<property name="dataStore" ref="dataStore"/>
+	    			<property name="dialect" ref="odialect"/>
+	    		</bean>
+	    		<bean id="pageResultset" class="org.ares.app.common.repository.mybatis.interceptor.page.PageResultSetHandlerInterceptor" />
+	    	</list>
+	    </property>
+	</bean>
+	
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="org.ares.app.demo.mbts" /><!-- need modify -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+	
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+	    <constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	
+</beans>

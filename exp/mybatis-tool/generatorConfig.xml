@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+	<classPathEntry location="C:/java/mvn_repository/lib/ojdbc6.jar" />
+	<context id="my" targetRuntime="MyBatis3">
+		<commentGenerator>
+			<property name="suppressDate" value="true" />
+			<property name="suppressAllComments" value="true" />
+		</commentGenerator>
+
+		<jdbcConnection driverClass="oracle.jdbc.driver.OracleDriver"
+			connectionURL="jdbc:oracle:thin:@192.168.0.55:1521:orcl" userId="ares" password="ares" />
+
+		<javaModelGenerator targetPackage="org.ares.app.demo.model" targetProject="C:/java/work/sts/ares-app/src/main/java">
+		<property name="constructorBased" value="true"/> <!-- 是否对model添加 构造函数 -->
+			<property name="enableSubPackages" value="true" />
+			<property name="trimStrings" value="true" /> <!-- 是否对类CHAR类型的列的数据进行trim操作 -->
+		</javaModelGenerator>
+
+		<sqlMapGenerator targetPackage="org.ares.app.demo.mbts.xml" targetProject="C:/java/work/sts/ares-app/src/main/java">
+			<property name="enableSubPackages" value="true" />
+		</sqlMapGenerator>
+
+		<!-- 生成DAO的包名和位置  
+                type="ANNOTATEDMAPPER",生成Java Model 和基于注解的Mapper对象  
+                type="MIXEDMAPPER",生成基于注解的Java Model 和相应的Mapper对象  
+                type="XMLMAPPER",生成SQLMap XML文件和独立的Mapper接口 -->
+		<javaClientGenerator targetPackage="org.ares.app.demo.mbts.mapper" targetProject="C:/java/work/sts/ares-app/src/main/java" type="XMLMAPPER">
+			<property name="enableSubPackages" value="true" />
+		</javaClientGenerator>
+
+		<!--<table tableName="T_FEE_AGTBILL" domainObjectName="FeeAgentBill" enableCountByExample="false" 
+			enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" 
+			selectByExampleQueryId="false"/> -->
+
+		<table tableName="DUSER" domainObjectName="UserModel" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
+			<!--<columnRenamingRule searchString="^D_" replaceString=""/> -->
+		</table>
+		
+	</context>
+</generatorConfiguration>

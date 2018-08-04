@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Insert title here</title>
+	<script type="text/javascript" src="js/jquery-3.0.0.min.js"></script>
+	<script type="text/javascript">
+		function x(){
+			
+			$.ajax({
+				url:'http://localhost:8080/ares/wx/receive.do',	
+			    type:'post',
+			    contentType:'text/xml',
+			    data: "<xml><ToUserName>ly</ToUserName><FromUserName>wx</FromUserName><content>ctx</content></xml>",
+			    dataType:'xml',
+			    processData:false,
+			    success:function(data){
+			       alert(data)
+			    }
+			}); 
+			
+		}
+		function y(){
+			$.ajax({
+				url:'http://localhost:8080/ares/wx/rcv.do',	
+			    type:'post',
+			    contentType:'text/xml',
+			    data: "<xml><ToUserName>ly</ToUserName><FromUserName>wx</FromUserName><Content>ctx</Content></xml>",
+			    success:function(data){
+			       alert(data)
+			    }
+			}); 
+			
+			fmdata='<ToUserName>ly</ToUserName><FromUserName>wx</FromUserName><Content>ctx</Content>';
+			$.post('http://localhost:8080/ares/wx/rcv.do',fmdata,function(r){
+				alert(r);
+			},'xml');
+		}
+		function r(){
+			
+			$.ajax({
+				url:'http://localhost:8080/ares/wx/r.do',	
+			    type:'post',
+			    contentType:'text/xml',
+			    data: "<xml><ToUserName>ly</ToUserName><FromUserName>wx</FromUserName><Content>ctx</Content></xml>",
+			    dataType:'xml',
+			    processData:false,
+			    success:function(data){
+			       alert(data)
+			    }
+			}); 
+			
+		}
+	</script>
+</head>
+<body>
+	Hello
+	<input type="button" value="receive" onclick="x()" />
+	<input type="button" value="rcv" onclick="y()" />
+	<input type="button" value="r" onclick="r()" />
+</body>
+</html>
